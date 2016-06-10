@@ -8,9 +8,7 @@
 //
 package com.mysampleapp;
 
-import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -20,19 +18,17 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
-
+import android.widget.Toast;
+import android.os.Handler;
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
-import com.amazonaws.mobileconnectors.cognito.Dataset;
-import com.amazonaws.mobileconnectors.cognito.DefaultSyncCallback;
-import com.amazonaws.mobileconnectors.cognito.Record;
 import com.mysampleapp.demo.DemoConfiguration;
-import com.mysampleapp.demo.HomeDemoFragment;
+import com.mysampleapp.demo.ExitHappy;
+import com.mysampleapp.demo.TabFragment;
 import com.mysampleapp.navigation.NavigationDrawer;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -48,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /** The toolbar view control. */
     private Toolbar toolbar;
 
+    private DrawerLayout drawerLayout;
+
     /** Our navigation drawer class for handling navigation drawer logic. */
     private NavigationDrawer navigationDrawer;
 
@@ -56,6 +54,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Button   signOutButton;
 
+    FragmentManager mFragmentManager;
+    FragmentTransaction mFragmentTransaction;
     /**
      * Initializes the Toolbar for use with the activity.
      */
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * side of the screen.
      */
     private void setupNavigationMenu(final Bundle savedInstanceState) {
-        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         final ListView drawerItems = (ListView) findViewById(R.id.nav_drawer_items);
 
         // Create the navigation drawer.
@@ -99,11 +99,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Add navigation drawer menu items.
         // Home isn't a demo, but is fake as a demo.
-        DemoConfiguration.DemoFeature home = new DemoConfiguration.DemoFeature();
+        /*DemoConfiguration.DemoFeature home = new DemoConfiguration.DemoFeature();
         home.iconResId = R.mipmap.icon_home;
         home.titleResId = R.string.main_nav_menu_item_home;
         navigationDrawer.addDemoFeatureToMenu(home);
-
+         */
         for (DemoConfiguration.DemoFeature demoFeature : DemoConfiguration.getDemoFeatureList()) {
             navigationDrawer.addDemoFeatureToMenu(demoFeature);
         }
@@ -113,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Add the home fragment to be displayed initially.
             navigationDrawer.showHome();
         }
+
     }
 
     @Override
@@ -131,9 +132,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setContentView(R.layout.activity_main);
 
+
         setupToolbar(savedInstanceState);
 
         setupNavigationMenu(savedInstanceState);
+        mFragmentManager = getSupportFragmentManager();
+        mFragmentTransaction = mFragmentManager.beginTransaction();
+        mFragmentTransaction.replace(R.id.main_fragment_container, new TabFragment()).commit();
+
+                android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.toolbar);
+        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar,R.string.app_name,R.string.app_name);
+
+        drawerLayout.setDrawerListener(mDrawerToggle);
+        mDrawerToggle.syncState();
+
     }
 
     @Override
@@ -188,6 +200,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onPause();
     }
 
+
+    boolean doubleBackToExitPressedOnce = false;
+
     @Override
     public void onBackPressed() {
         final FragmentManager fragmentManager = this.getSupportFragmentManager();
@@ -198,8 +213,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         if (fragmentManager.getBackStackEntryCount() == 0) {
-            if (fragmentManager.findFragmentByTag(HomeDemoFragment.class.getSimpleName()) == null) {
-                final Class fragmentClass = HomeDemoFragment.class;
+            if (doubleBackToExitPressedOnce) {
+                super.onBackPressed();
+                return;
+            }
+            this.doubleBackToExitPressedOnce = true;
+            Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+
+            new Handler().postDelayed(new Runnable() {
+
+                @Override
+                public void run() {
+                    doubleBackToExitPressedOnce=false;
+                }
+            }, 2000);
+            /*if (fragmentManager.findFragmentByTag(ExitHappy.class.getSimpleName()) == null) {
+                final Class fragmentClass = ExitHappy.class;
                 // if we aren't on the home fragment, navigate home.
                 final Fragment fragment = Fragment.instantiate(this, fragmentClass.getName());
 
@@ -215,8 +244,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     actionBar.setTitle(getString(R.string.app_name));
                 }
                 return;
-            }
+            }*/
         }
-        super.onBackPressed();
+        //super.onBackPressed();
     }
 }
