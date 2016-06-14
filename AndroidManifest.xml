@@ -48,6 +48,12 @@
             android:name=".MainActivity"
             android:label="@string/title_activity_main">
         </activity>
+         <activity
+            android:name=".demo.category_show"
+            android:label="category result"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait">
+        </activity>
 
          <!-- BEGIN - FACEBOOK SIGN-IN -->
 
